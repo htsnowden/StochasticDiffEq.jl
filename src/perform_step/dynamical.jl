@@ -42,8 +42,7 @@ end
     u2 = u1 + half*dt*du2
 
     # O
-    noise = integrator.g(u2, p, t+dt*half) .* W.dW
-    du3 = c1*du2 + c2*noise
+    du3 = apply_noise(integrator.g, du2, u2, integrator, cache::BAOABConstantCache)
 
     # A
     u = u2 + half*dt*du3
@@ -66,11 +65,9 @@ end
 
     # A
     @.. utmp = u1 + half*dt*dutmp
-
+    
     # O
-    integrator.g(gtmp, utmp, p, t+dt*half)
-    @.. noise = gtmp*W.dW
-    @.. dutmp = c1*dutmp + c2*noise
+    apply_noise(integrator.g, dutmp, utmp, integrator, cache::BAOABCache)
 
     # A
     @.. u.x[2] = utmp + half*dt*dutmp
@@ -78,4 +75,50 @@ end
     # B
     f.f1(k, dutmp, u.x[2], p, t+dt)
     @.. u.x[1] = dutmp + half*dt*k
+end
+"""
+    apply_noise(g, du2, u2, integrator, cache)
+
+    The primary purpose of this function is to allow for the addition
+    of a dynamical variable dependent noise process more complex than the
+    standard approaches. If one is to call the DynamicalSDEProblem with a
+    standard function for g then the typical approach for applying noise
+    is utilised
+    e.g.
+    For not in-place: noise = g(u, p, t+dt/2) * W.dW
+                      du3 = c1*du2 + c2*noise
+    For in-place: g!(gtmp, utmp, p, t+dt/2) .* W.dW
+                  @. dutmp = c1*du2 + c2*noise
+
+    To use a more complex form you can wrap your function for g in a
+    SciMLBase.DynamicalNoiseFunction to then apply your own change in
+    velocity. 
+    The structure of the noise function for use within a DynamicalNoiseFunction
+    is as follows:
+    For not in-place: g((du2, u2), integrator, cache)
+    For in-place: g(dutmp, utmp, integrator, cache) overwrites dutmp
+    Both function should 'return' the velocity adjusted for the effect of the 
+    stochastic noise process. 
+"""
+function apply_noise(g, du2, u2, integrator, cache::BAOABConstantCache)
+    @unpack t, dt, sqdt, uprev, u, p, W, f = integrator
+    @unpack half, c1, c2 = cache
+    noise = g(u2, p, t+dt*half) .* W.dW
+    return c1*du2 + c2*noise
+end
+
+function apply_noise(g, dutmp, utmp, integrator, cache::BAOABCache)
+    @unpack t, dt, sqdt, uprev, u, p, W, f = integrator
+    @unpack k, gtmp, noise, half, c1, c2 = cache
+    g(gtmp, utmp, p, t+dt*half)
+    @.. noise = gtmp*W.dW
+    @.. dutmp = c1*dutmp + c2*noise
+end
+
+function apply_noise(g::SciMLBase.DynamicalNoiseFunction, du2, u2, integrator, cache::BAOABConstantCache)
+    return g.f((du2,u2), integrator, cache)
+end
+
+function apply_noise(g::SciMLBase.DynamicalNoiseFunction, dutmp, utmp, integrator, cache::BAOABCache)
+    return g.f(dutmp, utmp, integrator, cache)
 end

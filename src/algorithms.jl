@@ -3145,5 +3145,6 @@ where:
 struct BAOAB{T} <: StochasticDiffEqAlgorithm
     gamma::T
     scale_noise::Bool
+    noise_mtx::Bool
 end
-BAOAB(; gamma = 1.0, scale_noise = true) = BAOAB(gamma, scale_noise)
+BAOAB(; gamma = 1.0, scale_noise = true, noise_mtx=false) = BAOAB(gamma, scale_noise, noise_mtx)
