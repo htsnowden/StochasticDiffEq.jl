@@ -12,6 +12,7 @@ on:
       - 'docs/**'
 jobs:
   test:
+    if: false  # Disabled until OrdinaryDiffEq compatibility is resolved, see https://github.com/SciML/StochasticDiffEq.jl/issues/666
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,7 +20,7 @@ jobs:
         julia-version: ['1.10']
         group: ['Interface1']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}

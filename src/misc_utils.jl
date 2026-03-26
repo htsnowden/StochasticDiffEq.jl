@@ -6,12 +6,15 @@ struct DiffCache{T <: AbstractArray, S <: AbstractArray}
 end
 
 Base.@pure function DiffCache(T, size, ::Type{Val{chunk_size}}) where {chunk_size}
-    DiffCache(fill(zero(T), size...),
-        fill(zero(Dual{typeof(ForwardDiff.Tag(DiffEqNLSolveTag(), T)), T, chunk_size}), size...))
+    DiffCache(
+        fill(zero(T), size...),
+        fill(zero(Dual{typeof(ForwardDiff.Tag(DiffEqNLSolveTag(), T)), T, chunk_size}), size...)
+    )
 end
 
 Base.@pure DiffCache(u::AbstractArray) = DiffCache(
-    eltype(u), size(u), Val{ForwardDiff.pickchunksize(length(u))})
+    eltype(u), size(u), Val{ForwardDiff.pickchunksize(length(u))}
+)
 Base.@pure DiffCache(u::AbstractArray, nlsolve) = DiffCache(eltype(u), size(u), Val{get_chunksize(nlsolve)})
 Base.@pure DiffCache(u::AbstractArray, T::Type{Val{CS}}) where {CS} = DiffCache(eltype(u), size(u), T)
 
@@ -31,12 +34,31 @@ end
 
 struct NLSOLVEJL_SETUP{CS, AD} end
 Base.@pure NLSOLVEJL_SETUP(; chunk_size = 0, autodiff = true) = NLSOLVEJL_SETUP{
-    chunk_size, autodiff}()
-(::NLSOLVEJL_SETUP)(f, u0; kwargs...) = (res = NLsolve.nlsolve(f, u0; kwargs...); res.zero)
+    chunk_size, autodiff,
+}()
+
+# Wrapper to store the function for use with SimpleNonlinearSolve
+struct IIFNLSolveFunc{F}
+    f::F
+end
+
+function (p::NLSOLVEJL_SETUP{CS, AD})(f_wrapper::IIFNLSolveFunc, u0; kwargs...) where {
+        CS, AD,
+    }
+    f = f_wrapper.f
+    # Create a NonlinearProblem-compatible function
+    # The IIF methods use f(resid, u) signature (in-place)
+    nlf = NonlinearFunction{true}((resid, u, p) -> (f(resid, u); nothing))
+    prob = NonlinearProblem(nlf, u0)
+    ad = AD ? AutoForwardDiff() : AutoFiniteDiff()
+    alg = SimpleTrustRegion(; autodiff = ad)
+    sol = solve(prob, alg)
+    return sol.u
+end
+
 function (p::NLSOLVEJL_SETUP{CS, AD})(::Type{Val{:init}}, f, u0_prototype) where {CS, AD}
-    AD ? autodiff = :forward : autodiff = :central
-    OnceDifferentiable(f, u0_prototype, u0_prototype, autodiff,
-        ForwardDiff.Chunk(determine_chunksize(u0_prototype, CS)))
+    # Return a wrapper that stores the function
+    return IIFNLSolveFunc(f)
 end
 
 get_chunksize(x) = 0
@@ -51,7 +73,7 @@ macro cache(expr)
     ratenoise_vars = Expr[]
     for x in fields
         if x.args[2] == :uType || x.args[2] == :rateType ||
-           x.args[2] == :kType || x.args[2] == :uNoUnitsType #|| x.args[2] == :possibleRateType
+                x.args[2] == :kType || x.args[2] == :uNoUnitsType #|| x.args[2] == :possibleRateType
             push!(cache_vars, :(c.$(x.args[1])))
         elseif x.args[2] == :JCType
             push!(cache_vars, :(c.$(x.args[1]).duals...))
@@ -69,7 +91,7 @@ macro cache(expr)
             push!(ratenoise_vars, :(c.$(x.args[1])))
         end
     end
-    quote
+    return quote
         $expr
         $(esc(:full_cache))(c::$name) = tuple($(cache_vars...))
         $(esc(:jac_iter))($(esc(:c))::$name) = tuple($(jac_vars...))

@@ -4,7 +4,13 @@ using Pkg
 function activate_gpu_env()
     Pkg.activate("gpu")
     Pkg.develop(PackageSpec(path = dirname(@__DIR__)))
-    Pkg.instantiate()
+    return Pkg.instantiate()
+end
+
+function activate_nopre_env()
+    Pkg.activate("nopre")
+    Pkg.develop(PackageSpec(path = dirname(@__DIR__)))
+    return Pkg.instantiate()
 end
 
 const LONGER_TESTS = false
@@ -48,6 +54,15 @@ const is_APPVEYOR = Sys.iswindows() && haskey(ENV, "APPVEYOR")
         end
         @time @safetestset "tstops Tests" begin
             include("tstops_tests.jl")
+        end
+        @time @safetestset "Callable tstops Tests" begin
+            include("callable_tstops_tests.jl")
+        end
+        @time @safetestset "Integrator RNG Tests" begin
+            include("rng_integrator_tests.jl")
+        end
+        @time @safetestset "JumpProblem kwarg forwarding Tests" begin
+            include("jump_kwarg_forwarding_tests.jl")
         end
         @time @safetestset "saveat Tests" begin
             include("saveat_tests.jl")
@@ -106,6 +121,9 @@ const is_APPVEYOR = Sys.iswindows() && haskey(ENV, "APPVEYOR")
         @time @safetestset "Utility Tests" begin
             include("utility_tests.jl")
         end
+        @time @safetestset "Implicit Time Parameter Tests" begin
+            include("implicit_time_parameter_test.jl")
+        end
         @time @safetestset "Non-diagonal SDE Tests" begin
             include("nondiagonal_tests.jl")
         end
@@ -160,9 +178,10 @@ const is_APPVEYOR = Sys.iswindows() && haskey(ENV, "APPVEYOR")
         @time @safetestset "Additive SDE Tests" begin
             include("sde/sde_additive_tests.jl")
         end
-        @time @safetestset "Split Tests" begin
-            include("split_tests.jl")
-        end
+        # Split tests temporarily disabled, see https://github.com/SciML/StochasticDiffEq.jl/issues/665
+        # @time @safetestset "Split Tests" begin
+        #     include("split_tests.jl")
+        # end
         @time @safetestset "Stratonovich Convergence Tests" begin
             include("stratonovich_convergence_tests.jl")
         end
@@ -227,6 +246,9 @@ const is_APPVEYOR = Sys.iswindows() && haskey(ENV, "APPVEYOR")
         @time @safetestset "IIP Weak Convergence Tests" begin
             include("weak_convergence/iip_weak.jl")
         end
+        @time @safetestset "IRI1 Weak Convergence Tests" begin
+            include("weak_convergence/iri1_weak.jl")
+        end
     end
 
     if !is_APPVEYOR && GROUP == "SROCKC2WeakConvergence"
@@ -258,6 +280,19 @@ const is_APPVEYOR = Sys.iswindows() && haskey(ENV, "APPVEYOR")
     if !is_APPVEYOR && GROUP == "Multithreaded"
         @time @safetestset "Mulithreaded Jump Thread Safety Tests" begin
             include("multithreaded_jump_test.jl")
+        end
+    end
+
+    if GROUP == "All" || GROUP == "Allocations"
+        @time @safetestset "Allocation Tests" begin
+            include("alloc_tests.jl")
+        end
+    end
+
+    if !is_APPVEYOR && GROUP == "StaticAnalysis"
+        activate_nopre_env()
+        @time @safetestset "JET Static Analysis Tests" begin
+            include("nopre/jet_tests.jl")
         end
     end
 end

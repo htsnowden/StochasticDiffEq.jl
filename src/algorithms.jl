@@ -1,25 +1,24 @@
-abstract type StochasticDiffEqAlgorithm <: AbstractSDEAlgorithm end
-abstract type StochasticDiffEqAdaptiveAlgorithm <: StochasticDiffEqAlgorithm end
-abstract type StochasticDiffEqCompositeAlgorithm <: StochasticDiffEqAlgorithm end
-
-abstract type StochasticDiffEqRODEAlgorithm <: AbstractRODEAlgorithm end
-abstract type StochasticDiffEqRODEAdaptiveAlgorithm <: StochasticDiffEqRODEAlgorithm end
-abstract type StochasticDiffEqRODECompositeAlgorithm <: StochasticDiffEqRODEAlgorithm end
+# Abstract types are defined in OrdinaryDiffEqCore and imported via StochasticDiffEq.jl:
+# StochasticDiffEqAlgorithm, StochasticDiffEqAdaptiveAlgorithm,
+# StochasticDiffEqCompositeAlgorithm, StochasticDiffEqRODEAlgorithm,
+# StochasticDiffEqRODEAdaptiveAlgorithm, StochasticDiffEqRODECompositeAlgorithm
 
 abstract type StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller} <:
-              StochasticDiffEqAdaptiveAlgorithm end
+StochasticDiffEqAdaptiveAlgorithm end
 abstract type StochasticDiffEqNewtonAlgorithm{CS, AD, FDT, ST, CJ, Controller} <:
-              StochasticDiffEqAlgorithm end
+StochasticDiffEqAlgorithm end
 
 abstract type StochasticDiffEqJumpAlgorithm <: StochasticDiffEqAlgorithm end
 abstract type StochasticDiffEqJumpAdaptiveAlgorithm <: StochasticDiffEqAlgorithm end
 abstract type StochasticDiffEqJumpNewtonAdaptiveAlgorithm{
-    CS, AD, FDT, ST, CJ, Controller} <: StochasticDiffEqJumpAdaptiveAlgorithm end
+    CS, AD, FDT, ST, CJ, Controller,
+} <: StochasticDiffEqJumpAdaptiveAlgorithm end
 
 abstract type StochasticDiffEqJumpDiffusionAlgorithm <: StochasticDiffEqAlgorithm end
 abstract type StochasticDiffEqJumpDiffusionAdaptiveAlgorithm <: StochasticDiffEqAlgorithm end
 abstract type StochasticDiffEqJumpNewtonDiffusionAdaptiveAlgorithm{
-    CS, AD, FDT, ST, CJ, Controller} <: StochasticDiffEqJumpDiffusionAdaptiveAlgorithm end
+    CS, AD, FDT, ST, CJ, Controller,
+} <: StochasticDiffEqJumpDiffusionAdaptiveAlgorithm end
 
 abstract type IteratedIntegralApprox end
 
@@ -51,7 +50,7 @@ integrals ∫₀ᵗ dWₛ are needed, and the Lévy area terms vanish.
 
 ## References
 
-  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992)
+  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992). ISBN: 978-3-540-54062-5. DOI: 10.1007/978-3-662-12616-5
   - Added in PR #459 with the integration of LevyArea.jl package
 """
 struct IICommutative <: IteratedIntegralApprox end
@@ -131,13 +130,13 @@ The Euler-Maruyama method is the simplest and most fundamental numerical method 
 
 The method discretizes the SDE:
 
-```
+```math
 du = f(u,p,t)dt + g(u,p,t)dW
 ```
 
 using the scheme:
 
-```
+```math
 u_{n+1} = u_n + f(u_n,p,t_n)Δt + g(u_n,p,t_n)ΔW_n
 ```
 
@@ -145,7 +144,7 @@ When `split=true`, the method uses step splitting which can improve stability fo
 
 ## References
 
-  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992)
+  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992). ISBN: 978-3-540-54062-5. DOI: 10.1007/978-3-662-12616-5
 """
 struct EM{split} <: StochasticDiffEqAlgorithm end
 EM(split = true) = EM{split}()
@@ -176,10 +175,8 @@ Split-step version of the Euler-Maruyama method that separates the drift and dif
 
 Applies operator splitting to treat drift and diffusion separately:
 
-```
-Step 1: u* = u_n + f(u_n,t_n)Δt     (drift step)
-Step 2: u_{n+1} = u* + g(u*,t_n)ΔW_n (diffusion step)
-```
+- Step 1: drift step ``u* = u_n + f(u_n,t_n) Δt``
+- Step 2: diffusion step ``u_{n+1} = u* + g(u*,t_n) ΔW_n``
 
 ## References
 
@@ -212,13 +209,13 @@ The Euler-Heun method is the Stratonovich analog of the Euler-Maruyama method, p
 
 For Stratonovich SDEs:
 
-```
+```math
 du = f(u,p,t)dt + g(u,p,t)∘dW
 ```
 
 The method uses:
 
-```
+```math
 u_{n+1} = u_n + f(u_n,p,t_n)Δt + g(u_n + 0.5*g(u_n,p,t_n)ΔW_n, p, t_n)ΔW_n
 ```
 
@@ -230,7 +227,7 @@ u_{n+1} = u_n + f(u_n,p,t_n)Δt + g(u_n + 0.5*g(u_n,p,t_n)ΔW_n, p, t_n)ΔW_n
 
 ## References
 
-  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992)
+  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992). ISBN: 978-3-540-54062-5. DOI: 10.1007/978-3-662-12616-5
 """
 struct EulerHeun <: StochasticDiffEqAlgorithm end
 """
@@ -314,9 +311,6 @@ Adaptive version of EulerHeun method with error estimation for automatic step si
 struct LambaEulerHeun <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Kloeden, P.E., Platen, E., Numerical Solution of Stochastic Differential Equations.
-Springer. Berlin Heidelberg (2011)
-
     SimplifiedEM()
 
 **SimplifiedEM: Simplified Euler-Maruyama Method (High Weak Order)**
@@ -359,9 +353,6 @@ Simplified version of the Euler-Maruyama method optimized for weak convergence w
 struct SimplifiedEM <: StochasticDiffEqAlgorithm end
 
 """
-Kloeden, P.E., Platen, E., Numerical Solution of Stochastic Differential Equations.
-Springer. Berlin Heidelberg (2011)
-
     RKMil(;interpretation=AlgorithmInterpretation.Ito)
 
 **RKMil: Runge-Kutta Milstein Method (Nonstiff)**
@@ -397,24 +388,21 @@ Explicit Runge-Kutta discretization of the Milstein method achieving strong orde
 
 Implements the Milstein scheme using Runge-Kutta techniques:
 
-```
-du = f(u,t)dt + g(u,t)dW + 0.5*g(u,t)*g'(u,t)*(dW^2 - dt)
+```math
+du = f(u,t)dt + g(u,t)dW + 0.5 g(u,t) g'(u,t) (dW^2 - dt)
 ```
 
 where g'(u,t) is the derivative of g with respect to u.
 
 ## References
 
-  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992)
+  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992). ISBN: 978-3-540-54062-5. DOI: 10.1007/978-3-662-12616-5
   - Milstein, G.N., "Numerical Integration of Stochastic Differential Equations"
 """
 struct RKMil{interpretation} <: StochasticDiffEqAdaptiveAlgorithm end
 RKMil(; interpretation = SciMLBase.AlgorithmInterpretation.Ito) = RKMil{interpretation}()
 
 """
-Kloeden, P.E., Platen, E., Numerical Solution of Stochastic Differential Equations.
-Springer. Berlin Heidelberg (2011)
-
     RKMilCommute(;interpretation=AlgorithmInterpretation.Ito, ii_approx=IICommutative())
 
 **RKMilCommute: Runge-Kutta Milstein for Commutative Noise (Nonstiff) - Recommended for Commutative Noise**
@@ -458,19 +446,17 @@ Extends the Milstein method to handle multiple commutative noise sources efficie
 ## References
 
   - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992)
+  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations." Springer. Berlin Heidelberg (2011)
 """
 struct RKMilCommute{T} <: StochasticDiffEqAdaptiveAlgorithm
     interpretation::SciMLBase.AlgorithmInterpretation.T
     ii_approx::T
 end
 function RKMilCommute(; interpretation = SciMLBase.AlgorithmInterpretation.Ito, ii_approx = IICommutative())
-    RKMilCommute(interpretation, ii_approx)
+    return RKMilCommute(interpretation, ii_approx)
 end
 
 """
-Kloeden, P.E., Platen, E., Numerical Solution of Stochastic Differential Equations.
-Springer. Berlin Heidelberg (2011)
-
     RKMilGeneral(;interpretation=AlgorithmInterpretation.Ito, ii_approx=IILevyArea(), c=1, p=nothing, dt=nothing)
 
 **RKMilGeneral: General Runge-Kutta Milstein Method (Nonstiff)**
@@ -516,6 +502,7 @@ Uses LevyArea.jl for efficient computation of iterated integrals:
 
 ## References
 
+  - Kloeden, P.E., Platen, E., Numerical Solution of Stochastic Differential Equations. Springer. Berlin Heidelberg (2011)
   - Kastner, F. and Rößler, A., "LevyArea.jl: A Julia package for Lévy area computation", arXiv:2201.08424
   - LevyArea.jl: https://github.com/stochastics-uni-luebeck/LevyArea.jl
 """
@@ -526,11 +513,13 @@ struct RKMilGeneral{T, TruncationType} <: StochasticDiffEqAdaptiveAlgorithm
     p::TruncationType
 end
 
-function RKMilGeneral(; interpretation = SciMLBase.AlgorithmInterpretation.Ito,
-        ii_approx = IILevyArea(), c = 1, p = nothing, dt = nothing)
-    γ = 1//1
-    p==true && (p = Int(floor(c*dt^(1//1-2//1*γ)) + 1))
-    RKMilGeneral{typeof(ii_approx), typeof(p)}(interpretation, ii_approx, c, p)
+function RKMilGeneral(;
+        interpretation = SciMLBase.AlgorithmInterpretation.Ito,
+        ii_approx = IILevyArea(), c = 1, p = nothing, dt = nothing
+    )
+    γ = 1 // 1
+    p == true && (p = Int(floor(c * dt^(1 // 1 - 2 // 1 * γ)) + 1))
+    return RKMilGeneral{typeof(ii_approx), typeof(p)}(interpretation, ii_approx, c, p)
 end
 
 """
@@ -712,12 +701,21 @@ struct SROCK1{interpretation, E} <: StochasticDiffEqAlgorithm
     eigen_est::E
 end
 function SROCK1(; interpretation = SciMLBase.AlgorithmInterpretation.Ito, eigen_est = nothing)
-    SROCK1{interpretation, typeof(eigen_est)}(eigen_est)
+    return SROCK1{interpretation, typeof(eigen_est)}(eigen_est)
 end
 
 # Weak Order 2
 
-"""
+for Alg in [:SROCK2, :KomBurSROCK2, :SROCKC2]
+    @eval begin
+        struct $Alg{E} <: StochasticDiffEqAlgorithm
+            eigen_est::E
+        end
+        $Alg(; eigen_est = nothing) = $Alg(eigen_est)
+    end
+end
+
+@doc """
     SROCK2(;eigen_est=nothing)
 
 **SROCK2: Second-Order Stabilized Runge-Kutta Chebyshev Method**
@@ -737,9 +735,9 @@ Second-order stabilized explicit method with weak order 2.0 for mildly stiff SDE
 
 ## References
 - Second-order ROCK methods for stochastic problems
-"""
+""" SROCK2
 
-"""
+@doc """
     KomBurSROCK2(;eigen_est=nothing)
 
 **KomBurSROCK2: Komori-Burrage Second-Order SROCK Method**
@@ -759,9 +757,9 @@ Alternative second-order stabilized method with different coefficients and stabi
 
 ## References
 - Komori and Burrage stabilized methods
-"""
+""" KomBurSROCK2
 
-"""
+@doc """
     SROCKC2(;eigen_est=nothing)
 
 **SROCKC2: Conservative Second-Order SROCK Method**
@@ -781,16 +779,7 @@ Conservative second-order stabilized method designed for robust performance.
 
 ## References
 - Conservative ROCK methods for stochastic problems
-"""
-
-for Alg in [:SROCK2, :KomBurSROCK2, :SROCKC2]
-    @eval begin
-        struct $Alg{E} <: StochasticDiffEqAlgorithm
-            eigen_est::E
-        end
-        $Alg(; eigen_est = nothing) = $Alg(eigen_est)
-    end
-end
+""" SROCKC2
 
 # ROCK stabilization for EM
 """
@@ -885,7 +874,7 @@ struct SKSROCK{E} <: StochasticDiffEqAlgorithm
     eigen_est::E
 end
 function SKSROCK(; post_processing = false, eigen_est = nothing)
-    SKSROCK(post_processing, eigen_est)
+    return SKSROCK(post_processing, eigen_est)
 end
 """
     TangXiaoSROCK2(;version_num=5, eigen_est=nothing)
@@ -936,7 +925,7 @@ struct TangXiaoSROCK2{E} <: StochasticDiffEqAlgorithm
     eigen_est::E
 end
 function TangXiaoSROCK2(; version_num = 5, eigen_est = nothing)
-    TangXiaoSROCK2(version_num, eigen_est)
+    return TangXiaoSROCK2(version_num, eigen_est)
 end
 ###############################################################################
 
@@ -1001,23 +990,19 @@ parameters θ and η.
     Milan J. Math. 77, 205–244 (2009). https://doi.org/10.1007/s00032-009-0100-0
   - Originally introduced in PR #88 (commit 42e2510) by Tatsuhiro Onodera (2018)
 
-!!! warning################################################################################
+!!! warning
 
     The derivative `ggprime` must be computed analytically for correctness.# Rossler
     The original paper contains a typo in the definition of ggprime - this
     implementation follows the corrected formulation.
 """
-PCEuler(ggprime; theta = 1/2, eta = 1/2) = PCEuler(theta, eta, ggprime)
+PCEuler(ggprime; theta = 1 / 2, eta = 1 / 2) = PCEuler(theta, eta, ggprime)
 
 ################################################################################
 
 # Rossler
 
 """
-Rößler A., Runge–Kutta Methods for the Strong Approximation of Solutions of
-Stochastic Differential Equations, SIAM J. Numer. Anal., 48 (3), pp. 922–952.
-DOI:10.1137/09076636X
-
     SRA(;tableau=constructSRA1())
 
 **SRA: Configurable Stochastic Runge-Kutta for Additive Noise (Nonstiff)**
@@ -1050,7 +1035,7 @@ Configurable adaptive strong order 1.5 method for additive noise problems with c
 
 ## References
 
-  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952
+  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952. DOI: 10.1137/09076636X.
 """
 struct SRA{TabType} <: StochasticDiffEqAdaptiveAlgorithm
     tableau::TabType
@@ -1058,10 +1043,6 @@ end
 SRA(; tableau = constructSRA1()) = SRA(tableau)
 
 """
-Rößler A., Runge–Kutta Methods for the Strong Approximation of Solutions of
-Stochastic Differential Equations, SIAM J. Numer. Anal., 48 (3), pp. 922–952.
-DOI:10.1137/09076636X
-
     SRI(;tableau=constructSRIW1(), error_terms=4)
 
 **SRI: Configurable Stochastic Runge-Kutta for Itô SDEs (Nonstiff)**
@@ -1095,7 +1076,7 @@ Configurable adaptive strong order 1.5 method for diagonal/scalar Itô SDEs with
 
 ## References
 
-  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952
+  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952. DOI: 10.1137/09076636X.
 """
 struct SRI{TabType} <: StochasticDiffEqAdaptiveAlgorithm
     tableau::TabType
@@ -1104,10 +1085,6 @@ end
 SRI(; tableau = constructSRIW1(), error_terms = 4) = SRI(tableau, error_terms)
 
 """
-Rößler A., Runge–Kutta Methods for the Strong Approximation of Solutions of
-Stochastic Differential Equations, SIAM J. Numer. Anal., 48 (3), pp. 922–952.
-DOI:10.1137/09076636X
-
     SRIW1()
 
 **SRIW1: Stochastic Runge-Kutta W1 Method (Nonstiff)**
@@ -1137,15 +1114,11 @@ Adaptive stochastic Runge-Kutta method with strong order 1.5 and weak order 2.0 
 
 ## References
 
-  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952
+  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952. DOI: 10.1137/09076636X.
 """
 struct SRIW1 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Rößler A., Runge–Kutta Methods for the Strong Approximation of Solutions of
-Stochastic Differential Equations, SIAM J. Numer. Anal., 48 (3), pp. 922–952.
-DOI:10.1137/09076636X
-
     SRIW2()
 
 **SRIW2: Stochastic Runge-Kutta W2 Method (Nonstiff)**
@@ -1175,7 +1148,7 @@ Adaptive stochastic Runge-Kutta method with strong order 1.5 and weak order 3.0 
 
 ## References
 
-  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952
+  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952. DOI: 10.1137/09076636X.
 """
 struct SRIW2 <: StochasticDiffEqAdaptiveAlgorithm end
 """
@@ -1252,10 +1225,6 @@ Alternative stability-optimized adaptive strong order 1.5 method with different 
 struct SOSRI2 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Rößler A., Runge–Kutta Methods for the Strong Approximation of Solutions of
-Stochastic Differential Equations, SIAM J. Numer. Anal., 48 (3), pp. 922–952.
-DOI:10.1137/09076636X
-
     SRA1()
 
 **SRA1: Stochastic Runge-Kutta A1 Method (Nonstiff)**
@@ -1281,23 +1250,19 @@ Adaptive strong order 1.5 method for additive Itô and Stratonovich SDEs with we
 
 Specialized for SDEs of the form:
 
-```
-du = f(u,p,t)dt + σ(p,t) dW
+```math
+du = f(u,p,t) dt + σ(p,t) dW
 ```
 
 where diffusion σ doesn't depend on solution u.
 
 ## References
 
-  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952
+  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952. DOI:10.1137/09076636X
 """
 struct SRA1 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Rößler A., Runge–Kutta Methods for the Strong Approximation of Solutions of
-Stochastic Differential Equations, SIAM J. Numer. Anal., 48 (3), pp. 922–952.
-DOI:10.1137/09076636X
-
     SRA2()
 
 **SRA2: Stochastic Runge-Kutta A2 Method (Nonstiff)**
@@ -1321,15 +1286,11 @@ Alternative adaptive strong order 1.5 method for additive noise problems with di
 
 ## References
 
-  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952
+  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952. DOI:10.1137/09076636X
 """
 struct SRA2 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Rößler A., Runge–Kutta Methods for the Strong Approximation of Solutions of
-Stochastic Differential Equations, SIAM J. Numer. Anal., 48 (3), pp. 922–952.
-DOI:10.1137/09076636X
-
     SRA3()
 
 **SRA3: Stochastic Runge-Kutta A3 Method (Nonstiff)**
@@ -1364,7 +1325,7 @@ Adaptive strong order 1.5 method for additive noise problems with weak order 3.
 
 ## References
 
-  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952
+  - Rößler A., "Runge–Kutta Methods for the Strong Approximation of Solutions of Stochastic Differential Equations", SIAM J. Numer. Anal., 48 (3), pp. 922–952. DOI:10.1137/09076636X
 """
 struct SRA3 <: StochasticDiffEqAdaptiveAlgorithm end
 """
@@ -1399,8 +1360,8 @@ SOSRA is a stability-optimized version of the SRA (Stochastic Runge-Kutta for Ad
 
 Specialized for SDEs of the form:
 
-```
-du = f(u,p,t)dt + σ(t) dW
+```math
+du = f(u,p,t) dt + σ(t) dW
 ```
 
 where the diffusion σ does not depend on the solution u.
@@ -1443,11 +1404,6 @@ struct SOSRA2 <: StochasticDiffEqAdaptiveAlgorithm end
 # Rossler second order for weak approx.
 
 """
-Debrabant, K. and Rößler A., Families of efficient second order Runge–Kutta methods
-for the weak approximation of Itô stochastic differential equations,
-Applied Numerical Mathematics 59, pp. 582–594 (2009)
-DOI:10.1016/j.apnum.2008.03.012
-
     DRI1()
 
 **DRI1: Debrabant-Rößler Implicit Method (High Weak Order)**
@@ -1485,16 +1441,11 @@ Adaptive high-order method optimized for weak convergence with minimized error c
 
 ## References
 
-  - Debrabant, K. and Rößler A., "Families of efficient second order Runge–Kutta methods for the weak approximation of Itô stochastic differential equations", Applied Numerical Mathematics 59, pp. 582–594 (2009)
+  - Debrabant, K. and Rößler A., "Families of efficient second order Runge–Kutta methods for the weak approximation of Itô stochastic differential equations", Applied Numerical Mathematics 59, pp. 582–594 (2009). DOI: 10.1016/j.apnum.2008.03.012
 """
 struct DRI1 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Debrabant, K. and Rößler A., Families of efficient second order Runge–Kutta methods
-for the weak approximation of Itô stochastic differential equations,
-Applied Numerical Mathematics 59, pp. 582–594 (2009)
-DOI:10.1016/j.apnum.2008.03.012
-
     DRI1NM()
 
 **DRI1NM: Debrabant-Rößler Implicit Non-Mixing Method (High Weak Order)**
@@ -1537,15 +1488,11 @@ Each component depends only on itself (no coupling).
 
 ## References
 
-  - Debrabant, K. and Rößler A., "Families of efficient second order Runge–Kutta methods for the weak approximation of Itô stochastic differential equations", Applied Numerical Mathematics 59, pp. 582–594 (2009)
+  - Debrabant, K. and Rößler A., "Families of efficient second order Runge–Kutta methods for the weak approximation of Itô stochastic differential equations", Applied Numerical Mathematics 59, pp. 582–594 (2009). DOI: 10.1016/j.apnum.2008.03.012.
 """
 struct DRI1NM <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Rößler A., Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations,
-SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009)
-DOI:10.1137/060673308
-
     RI1()
 
 **RI1: Rößler Implicit Method 1 (High Weak Order)**
@@ -1570,15 +1517,11 @@ Adaptive weak order 2.0 method for Itô SDEs with deterministic order 3.
 
 ## References
 
-  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009)
+  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009). DOI: 10.1137/060673308.
 """
 struct RI1 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Rößler A., Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations,
-SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009)
-DOI:10.1137/060673308
-
     RI3()
 
 **RI3: Rößler Implicit Method 3 (High Weak Order)**
@@ -1602,15 +1545,11 @@ Alternative adaptive weak order 2.0 method with different stability characterist
 
 ## References
 
-  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009)
+  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009). DOI: 10.1137/060673308
 """
 struct RI3 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Rößler A., Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations,
-SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009)
-DOI:10.1137/060673308
-
     RI5()
 
 **RI5: Rößler Implicit Method 5 (High Weak Order)**
@@ -1634,15 +1573,11 @@ Another variant in the RI family of weak order 2.0 methods.
 
 ## References
 
-  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009)
+  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009). DOI: 10.1137/060673308
 """
 struct RI5 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Rößler A., Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations,
-SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009)
-DOI:10.1137/060673308
-
     RI6()
 
 **RI6: Rößler Implicit Method 6 (High Weak Order)**
@@ -1672,16 +1607,11 @@ Final method in the RI family with deterministic order 2 (lower than other RI me
 
 ## References
 
-  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009)
+  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009). DOI: 10.1137/060673308
 """
 struct RI6 <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Debrabant, K. and Rößler A., Classification of Stochastic Runge–Kutta Methods for
-the Weak Approximation of Stochastic Differential Equations,
-Mathematics and Computers in Simulation 77, pp. 408-420 (2008)
-DOI:10.1016/j.matcom.2007.04.016
-
     RDI1WM()
 
 **RDI1WM: Runge-Kutta Debrabant Implicit 1 Weak Method (High Weak Order)**
@@ -1706,16 +1636,11 @@ Fixed step method with weak order 1.0 for Itô SDEs.
 
 ## References
 
-  - Debrabant, K. and Rößler A., "Classification of Stochastic Runge–Kutta Methods for the Weak Approximation of Stochastic Differential Equations", Mathematics and Computers in Simulation 77, pp. 408-420 (2008)
+  - Debrabant, K. and Rößler A., "Classification of Stochastic Runge–Kutta Methods for the Weak Approximation of Stochastic Differential Equations", Mathematics and Computers in Simulation 77, pp. 408-420 (2008). DOI: 10.1016/j.matcom.2007.04.016
 """
 struct RDI1WM <: StochasticDiffEqAlgorithm end
 
 """
-Debrabant, K. and Rößler A., Classification of Stochastic Runge–Kutta Methods for
-the Weak Approximation of Stochastic Differential Equations,
-Mathematics and Computers in Simulation 77, pp. 408-420 (2008)
-DOI:10.1016/j.matcom.2007.04.016
-
     RDI2WM()
 
 **RDI2WM: Runge-Kutta Debrabant Implicit 2 Weak Method (High Weak Order)**
@@ -1740,16 +1665,11 @@ Adaptive weak order 2.0 method for Itô SDEs with deterministic order 2.
 
 ## References
 
-  - Debrabant, K. and Rößler A., "Classification of Stochastic Runge–Kutta Methods for the Weak Approximation of Stochastic Differential Equations", Mathematics and Computers in Simulation 77, pp. 408-420 (2008)
+  - Debrabant, K. and Rößler A., "Classification of Stochastic Runge–Kutta Methods for the Weak Approximation of Stochastic Differential Equations", Mathematics and Computers in Simulation 77, pp. 408-420 (2008). DOI: 10.1016/j.matcom.2007.04.016.
 """
 struct RDI2WM <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Debrabant, K. and Rößler A., Classification of Stochastic Runge–Kutta Methods for
-the Weak Approximation of Stochastic Differential Equations,
-Mathematics and Computers in Simulation 77, pp. 408-420 (2008)
-DOI:10.1016/j.matcom.2007.04.016
-
     RDI3WM()
 
 **RDI3WM: Runge-Kutta Debrabant Implicit 3 Weak Method (High Weak Order)**
@@ -1774,16 +1694,11 @@ Adaptive weak order 2.0 method with higher deterministic order 3.
 
 ## References
 
-  - Debrabant, K. and Rößler A., "Classification of Stochastic Runge–Kutta Methods for the Weak Approximation of Stochastic Differential Equations", Mathematics and Computers in Simulation 77, pp. 408-420 (2008)
+  - Debrabant, K. and Rößler A., "Classification of Stochastic Runge–Kutta Methods for the Weak Approximation of Stochastic Differential Equations", Mathematics and Computers in Simulation 77, pp. 408-420 (2008). DOI: 10.1016/j.matcom.2007.04.016.
 """
 struct RDI3WM <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Debrabant, K. and Rößler A., Classification of Stochastic Runge–Kutta Methods for
-the Weak Approximation of Stochastic Differential Equations,
-Mathematics and Computers in Simulation 77, pp. 408-420 (2008)
-DOI:10.1016/j.matcom.2007.04.016
-
     RDI4WM()
 
 **RDI4WM: Runge-Kutta Debrabant Implicit 4 Weak Method (High Weak Order)**
@@ -1808,16 +1723,11 @@ Fourth variant in the RDI family with weak order 2.0 and deterministic order 3.
 
 ## References
 
-  - Debrabant, K. and Rößler A., "Classification of Stochastic Runge–Kutta Methods for the Weak Approximation of Stochastic Differential Equations", Mathematics and Computers in Simulation 77, pp. 408-420 (2008)
+  - Debrabant, K. and Rößler A., "Classification of Stochastic Runge–Kutta Methods for the Weak Approximation of Stochastic Differential Equations", Mathematics and Computers in Simulation 77, pp. 408-420 (2008). DOI: 10.1016/j.matcom.2007.04.016.
 """
 struct RDI4WM <: StochasticDiffEqAdaptiveAlgorithm end
 
 """
-Tang, X., & Xiao, A., Efficient weak second-order stochastic Runge–Kutta methods
-for Itô stochastic differential equations,
-BIT Numerical Mathematics, 57, 241-260 (2017)
-DOI: 10.1007/s10543-016-0618-9
-
     W2Ito1()
 
 **W2Ito1: Wang-Tang-Xiao Weak Order 2 Method (High Weak Order)**
@@ -1848,17 +1758,13 @@ Efficient weak second-order method for Itô SDEs with adaptive stepping.
 
 ## References
 
-  - Tang, X., & Xiao, A., "Efficient weak second-order stochastic Runge–Kutta methods for Itô stochastic differential equations", BIT Numerical Mathematics, 57, 241-260 (2017)# Stratonovich sense
+  - Tang, X., & Xiao, A., "Efficient weak second-order stochastic Runge–Kutta methods for Itô stochastic differential equations", BIT Numerical Mathematics, 57, 241-260 (2017). DOI: 10.1007/s10543-016-0618-9
 """
 struct W2Ito1 <: StochasticDiffEqAdaptiveAlgorithm end
 
 # Stratonovich sense
 
 """
-Rößler A., Second order Runge–Kutta methods for Stratonovich stochastic differential
-equations, BIT Numerical Mathematics 47, pp. 657-680 (2007)
-DOI:10.1007/s10543-007-0130-3
-
     RS1()
 
 **RS1: Rößler Stratonovich Method 1 (High Weak Order)**
@@ -1885,7 +1791,7 @@ Fixed step weak order 2.0 method specifically designed for Stratonovich SDEs.
 
 Optimized for SDEs in Stratonovich form:
 
-```
+```math
 du = f(u,t)dt + g(u,t)∘dW
 ```
 
@@ -1893,15 +1799,11 @@ where ∘ denotes Stratonovich integration.
 
 ## References
 
-  - Rößler A., "Second order Runge–Kutta methods for Stratonovich stochastic differential equations", BIT Numerical Mathematics 47, pp. 657-680 (2007)
+  - Rößler A., "Second order Runge–Kutta methods for Stratonovich stochastic differential equations", BIT Numerical Mathematics 47, pp. 657-680 (2007) DOI: 10.1007/s10543-007-0130-3.
 """
 struct RS1 <: StochasticDiffEqAlgorithm end
 
 """
-Rößler A., Second order Runge–Kutta methods for Stratonovich stochastic differential
-equations, BIT Numerical Mathematics 47, pp. 657-680 (2007)
-DOI:10.1007/s10543-007-0130-3
-
     RS2()
 
 **RS2: Rößler Stratonovich Method 2 (High Weak Order)**
@@ -1932,14 +1834,11 @@ Alternative fixed step weak order 2.0 method for Stratonovich SDEs with higher d
 
 ## References
 
-  - Rößler A., "Second order Runge–Kutta methods for Stratonovich stochastic differential equations", BIT Numerical Mathematics 47, pp. 657-680 (2007)
+  - Rößler A., "Second order Runge–Kutta methods for Stratonovich stochastic differential equations", BIT Numerical Mathematics 47, pp. 657-680 (2007). DOI: 10.1007/s10543-007-0130-3
 """
 struct RS2 <: StochasticDiffEqAlgorithm end
 
 """
-Kloeden, P.E., Platen, E., Numerical Solution of Stochastic Differential Equations.
-Springer. Berlin Heidelberg (2011)
-
     PL1WM()
 
 **PL1WM: Platen Weak Method 1 (High Weak Order)**
@@ -1970,14 +1869,11 @@ Fixed step weak order 2.0 method from the classical Kloeden-Platen textbook.
 
 ## References
 
-  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer. Berlin Heidelberg (2011)
+  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer. Berlin Heidelberg (2011). ISBN 978-3-540-54062-5. DOI: 10.1007/978-3-662-12616-5.
 """
 struct PL1WM <: StochasticDiffEqAlgorithm end
 
 """
-Kloeden, P.E., Platen, E., Numerical Solution of Stochastic Differential Equations.
-Springer. Berlin Heidelberg (2011)
-
     PL1WMA()
 
 **PL1WMA: Platen Weak Method 1 Additive (High Weak Order)**
@@ -2004,7 +1900,7 @@ Specialized version of PL1WM optimized for additive noise problems.
 
 Specialized for SDEs of the form:
 
-```
+```math
 du = f(u,t)dt + σ(t) dW
 ```
 
@@ -2018,19 +1914,20 @@ where diffusion σ doesn't depend on solution u.
 
 ## References
 
-  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer. Berlin Heidelberg (2011)
+  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer. Berlin Heidelberg (2011). ISBN 978-3-540-54062-5. DOI: 10.1007/978-3-662-12616-5.
 """
 struct PL1WMA <: StochasticDiffEqAlgorithm end
 
 """
-Komori, Y., Weak second-order stochastic Runge–Kutta methods for non-commutative
-stochastic differential equations, Journal of Computational and Applied
-Mathematics 206, pp. 158 – 173 (2007)
-DOI:10.1016/j.cam.2006.06.006
+    NON()
 
 NON: High Weak Order Method
 Fixed step weak order 2.0 for Stratonovich SDEs (deterministic order 4).
 Can handle diagonal, non-diagonal, non-commuting, and scalar additive noise.
+
+## References
+
+  - Komori, Y., Weak second-order stochastic Runge–Kutta methods for non-commutative stochastic differential equations, Journal of Computational and Applied Mathematics 206, pp. 158 – 173 (2007). DOI: 10.1016/j.cam.2006.06.006.
 """
 struct NON <: StochasticDiffEqAlgorithm end
 
@@ -2074,7 +1971,7 @@ for all noise terms.
 
 ## References
 
-  - Komori, Y., "Weak order stochastic Runge–Kutta methods for commutative stochastic differential equations", Journal of Computational and Applied Mathematics 203, pp. 57 – 79 (2007)
+  - Komori, Y., "Weak order stochastic Runge–Kutta methods for commutative stochastic differential equations", Journal of Computational and Applied Mathematics 203, pp. 57 – 79 (2007). Bibcode: 2007JCoAM.203...57K
 """
 struct COM <: StochasticDiffEqAlgorithm end
 
@@ -2113,10 +2010,6 @@ Improved version of the NON method with enhanced efficiency for non-commutative 
 struct NON2 <: StochasticDiffEqAlgorithm end
 
 """
-Tocino, A. and Vigo-Aguiar, J., Weak Second Order Conditions for Stochastic Runge-
-Kutta Methods, SIAM Journal on Scientific Computing 24, pp. 507 - 523 (2002)
-DOI:10.1137/S1064827501387814
-
     SIEA()
 
 **SIEA: Stochastic Improved Euler A Method (High Weak Order)**
@@ -2147,15 +2040,11 @@ Stochastic generalization of the improved Euler method for Itô SDEs.
 
 ## References
 
-  - Tocino, A. and Vigo-Aguiar, J., "Weak Second Order Conditions for Stochastic Runge-Kutta Methods", SIAM Journal on Scientific Computing 24, pp. 507-523 (2002)
+  - Tocino, A. and Vigo-Aguiar, J., "Weak Second Order Conditions for Stochastic Runge-Kutta Methods", SIAM Journal on Scientific Computing 24, pp. 507-523 (2002). DOI: 10.1137/S1064827501387814.
 """
 struct SIEA <: StochasticDiffEqAlgorithm end
 
 """
-Tocino, A. and Vigo-Aguiar, J., Weak Second Order Conditions for Stochastic Runge-
-Kutta Methods, SIAM Journal on Scientific Computing 24, pp. 507 - 523 (2002)
-DOI:10.1137/S1064827501387814
-
     SMEA()
 
 **SMEA: Stochastic Modified Euler A Method (High Weak Order)**
@@ -2186,15 +2075,11 @@ Stochastic generalization of the modified Euler method for Itô SDEs.
 
 ## References
 
-  - Tocino, A. and Vigo-Aguiar, J., "Weak Second Order Conditions for Stochastic Runge-Kutta Methods", SIAM Journal on Scientific Computing 24, pp. 507-523 (2002)
+  - Tocino, A. and Vigo-Aguiar, J., "Weak Second Order Conditions for Stochastic Runge-Kutta Methods", SIAM Journal on Scientific Computing 24, pp. 507-523 (2002). DOI: 10.1137/S1064827501387814.
 """
 struct SMEA <: StochasticDiffEqAlgorithm end
 
 """
-Tocino, A. and Vigo-Aguiar, J., Weak Second Order Conditions for Stochastic Runge-
-Kutta Methods, SIAM Journal on Scientific Computing 24, pp. 507 - 523 (2002)
-DOI:10.1137/S1064827501387814
-
     SIEB()
 
 **SIEB: Stochastic Improved Euler B Method (High Weak Order)**
@@ -2225,15 +2110,11 @@ Alternative stochastic generalization of the improved Euler method.
 
 ## References
 
-  - Tocino, A. and Vigo-Aguiar, J., "Weak Second Order Conditions for Stochastic Runge-Kutta Methods", SIAM Journal on Scientific Computing 24, pp. 507-523 (2002)
+  - Tocino, A. and Vigo-Aguiar, J., "Weak Second Order Conditions for Stochastic Runge-Kutta Methods", SIAM Journal on Scientific Computing 24, pp. 507-523 (2002). DOI: 10.1137/S1064827501387814.
 """
 struct SIEB <: StochasticDiffEqAlgorithm end
 
 """
-Tocino, A. and Vigo-Aguiar, J., Weak Second Order Conditions for Stochastic Runge-
-Kutta Methods, SIAM Journal on Scientific Computing 24, pp. 507 - 523 (2002)
-DOI:10.1137/S1064827501387814
-
     SMEB()
 
 **SMEB: Stochastic Modified Euler B Method (High Weak Order)**
@@ -2264,7 +2145,7 @@ Alternative stochastic generalization of the modified Euler method.
 
 ## References
 
-  - Tocino, A. and Vigo-Aguiar, J., "Weak Second Order Conditions for Stochastic Runge-Kutta Methods", SIAM Journal on Scientific Computing 24, pp. 507-523 (2002)
+  - Tocino, A. and Vigo-Aguiar, J., "Weak Second Order Conditions for Stochastic Runge-Kutta Methods", SIAM Journal on Scientific Computing 24, pp. 507-523 (2002). DOI: 10.1137/S1064827501387814
 """
 struct SMEB <: StochasticDiffEqAlgorithm end
 
@@ -2427,10 +2308,10 @@ When `symplectic=true` and `theta=0.5`, the method preserves the symplectic stru
 
 ## Algorithm Description
 
-Treats the SDE `du = f(u,t)dt + g(u,t)dW` using:
+Treats the SDE ``du = f(u,t)dt + g(u,t)dW`` using:
 
-```
-u_{n+1} = u_n + theta*f(u_{n+1},t_{n+1})*dt + (1-theta)*f(u_n,t_n)*dt + g(u_n,t_n)*dW_n
+```math
+u_{n+1} = u_n + θ f(u_{n+1},t_{n+1}) dt + (1-θ) f(u_n,t_n) dt + g(u_n,t_n) dW_n
 ```
 
 ## References
@@ -2438,7 +2319,7 @@ u_{n+1} = u_n + theta*f(u_{n+1},t_{n+1})*dt + (1-theta)*f(u_n,t_n)*dt + g(u_n,t_
   - Standard implicit methods adapted for SDEs
 """
 struct ImplicitEM{CS, AD, F, F2, P, FDT, ST, CJ, T2, Controller} <:
-       StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
+    StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
     linsolve::F
     nlsolve::F2
     precs::P
@@ -2447,26 +2328,31 @@ struct ImplicitEM{CS, AD, F, F2, P, FDT, ST, CJ, T2, Controller} <:
     new_jac_conv_bound::T2
     symplectic::Bool
 end
-function ImplicitEM(; chunk_size = 0, autodiff = true, diff_type = Val{:central},
+function ImplicitEM(;
+        chunk_size = 0, autodiff = true, diff_type = Val{:central},
         standardtag = Val{true}(), concrete_jac = nothing,
         precs = OrdinaryDiffEqCore.DEFAULT_PRECS,
         linsolve = nothing, nlsolve = NLNewton(),
         extrapolant = :constant,
         theta = 1, symplectic = false,
-        new_jac_conv_bound = 1e-3,
-        controller = :Predictive)
-    ImplicitEM{chunk_size, autodiff,
+        new_jac_conv_bound = 1.0e-3,
+        controller = :Predictive
+    )
+    return ImplicitEM{
+        chunk_size, autodiff,
         typeof(linsolve), typeof(nlsolve), typeof(precs), diff_type,
         SciMLBase._unwrap_val(standardtag),
         SciMLBase._unwrap_val(concrete_jac),
-        typeof(new_jac_conv_bound), controller}(
+        typeof(new_jac_conv_bound), controller,
+    }(
         linsolve, nlsolve, precs,
-        symplectic ? 1/2 : theta,
-        extrapolant, new_jac_conv_bound, symplectic)
+        symplectic ? 1 / 2 : theta,
+        extrapolant, new_jac_conv_bound, symplectic
+    )
 end
 
-STrapezoid(; kwargs...) = ImplicitEM(; theta = 1/2, kwargs...)
-SImplicitMidpoint(; kwargs...) = ImplicitEM(; theta = 1/2, symplectic = true, kwargs...)
+STrapezoid(; kwargs...) = ImplicitEM(; theta = 1 / 2, kwargs...)
+SImplicitMidpoint(; kwargs...) = ImplicitEM(; theta = 1 / 2, symplectic = true, kwargs...)
 """
     ImplicitEulerHeun(;chunk_size=0, autodiff=true, diff_type=Val{:central},
                       standardtag=Val{true}(), concrete_jac=nothing, precs=DEFAULT_PRECS,
@@ -2514,7 +2400,7 @@ When `symplectic=true` and `theta=1`, preserves symplectic structure in distribu
   - Implicit methods for stiff SDEs in Stratonovich interpretation
 """
 struct ImplicitEulerHeun{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller} <:
-       StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
+    StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
     linsolve::F
     nlsolve::N
     precs::P
@@ -2523,24 +2409,29 @@ struct ImplicitEulerHeun{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller} <:
     new_jac_conv_bound::T2
     symplectic::Bool
 end
-function ImplicitEulerHeun(; chunk_size = 0, autodiff = true, diff_type = Val{:central},
+function ImplicitEulerHeun(;
+        chunk_size = 0, autodiff = true, diff_type = Val{:central},
         standardtag = Val{true}(), concrete_jac = nothing,
         precs = OrdinaryDiffEqCore.DEFAULT_PRECS,
         linsolve = nothing, nlsolve = NLNewton(),
         extrapolant = :constant,
         theta = 1, symplectic = false,
-        new_jac_conv_bound = 1e-3,
-        controller = :Predictive)
-    ImplicitEulerHeun{chunk_size, autodiff,
+        new_jac_conv_bound = 1.0e-3,
+        controller = :Predictive
+    )
+    return ImplicitEulerHeun{
+        chunk_size, autodiff,
         typeof(linsolve), typeof(precs), diff_type,
         SciMLBase._unwrap_val(standardtag),
         SciMLBase._unwrap_val(concrete_jac),
         typeof(nlsolve),
-        typeof(new_jac_conv_bound), controller}(
+        typeof(new_jac_conv_bound), controller,
+    }(
         linsolve, nlsolve, precs,
-        symplectic ? 1/2 : theta,
+        symplectic ? 1 / 2 : theta,
         extrapolant,
-        new_jac_conv_bound, symplectic)
+        new_jac_conv_bound, symplectic
+    )
 end
 
 """
@@ -2594,7 +2485,7 @@ Drift-implicit Runge-Kutta Milstein method achieving order 1.0 for stiff problem
   - Implicit Milstein methods for stiff SDEs
 """
 struct ImplicitRKMil{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller, interpretation} <:
-       StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
+    StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
     linsolve::F
     nlsolve::N
     precs::P
@@ -2603,24 +2494,29 @@ struct ImplicitRKMil{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller, interpretatio
     new_jac_conv_bound::T2
     symplectic::Bool
 end
-function ImplicitRKMil(; chunk_size = 0, autodiff = true, diff_type = Val{:central},
+function ImplicitRKMil(;
+        chunk_size = 0, autodiff = true, diff_type = Val{:central},
         standardtag = Val{true}(), concrete_jac = nothing,
         precs = OrdinaryDiffEqCore.DEFAULT_PRECS,
         linsolve = nothing, nlsolve = NLNewton(),
         extrapolant = :constant,
         theta = 1, symplectic = false,
-        new_jac_conv_bound = 1e-3,
-        controller = :Predictive, interpretation = SciMLBase.AlgorithmInterpretation.Ito)
-    ImplicitRKMil{chunk_size, autodiff,
+        new_jac_conv_bound = 1.0e-3,
+        controller = :Predictive, interpretation = SciMLBase.AlgorithmInterpretation.Ito
+    )
+    return ImplicitRKMil{
+        chunk_size, autodiff,
         typeof(linsolve), typeof(precs), diff_type,
         SciMLBase._unwrap_val(standardtag),
         SciMLBase._unwrap_val(concrete_jac),
         typeof(nlsolve), typeof(new_jac_conv_bound),
-        controller, interpretation}(
+        controller, interpretation,
+    }(
         linsolve, nlsolve, precs,
-        symplectic ? 1/2 : theta,
+        symplectic ? 1 / 2 : theta,
         extrapolant,
-        new_jac_conv_bound, symplectic)
+        new_jac_conv_bound, symplectic
+    )
 end
 """
     ISSEM(;chunk_size=0, autodiff=true, diff_type=Val{:central},
@@ -2659,10 +2555,8 @@ Fully implicit split-step method for handling stiffness in both drift and diffus
 
 Applies implicit treatment to both drift and diffusion using split-step approach:
 
-```
-Step 1: Handle drift implicitly
-Step 2: Handle diffusion implicitly
-```
+- Step 1: Handle drift implicitly
+- Step 2: Handle diffusion implicitly
 
 ## Fully Implicit Features
 
@@ -2676,7 +2570,7 @@ Step 2: Handle diffusion implicitly
   - Split-step implicit methods for fully stiff SDEs
 """
 struct ISSEM{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller} <:
-       StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
+    StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
     linsolve::F
     nlsolve::N
     precs::P
@@ -2685,24 +2579,29 @@ struct ISSEM{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller} <:
     new_jac_conv_bound::T2
     symplectic::Bool
 end
-function ISSEM(; chunk_size = 0, autodiff = true, diff_type = Val{:central},
+function ISSEM(;
+        chunk_size = 0, autodiff = true, diff_type = Val{:central},
         standardtag = Val{true}(), concrete_jac = nothing,
         precs = OrdinaryDiffEqCore.DEFAULT_PRECS,
         linsolve = nothing, nlsolve = NLNewton(),
         extrapolant = :constant,
         theta = 1, symplectic = false,
-        new_jac_conv_bound = 1e-3,
-        controller = :Predictive)
-    ISSEM{chunk_size, autodiff,
+        new_jac_conv_bound = 1.0e-3,
+        controller = :Predictive
+    )
+    return ISSEM{
+        chunk_size, autodiff,
         typeof(linsolve), typeof(precs), diff_type,
         SciMLBase._unwrap_val(standardtag),
         SciMLBase._unwrap_val(concrete_jac),
         typeof(nlsolve),
-        typeof(new_jac_conv_bound), controller}(
+        typeof(new_jac_conv_bound), controller,
+    }(
         linsolve, nlsolve, precs,
-        symplectic ? 1/2 : theta,
+        symplectic ? 1 / 2 : theta,
         extrapolant,
-        new_jac_conv_bound, symplectic)
+        new_jac_conv_bound, symplectic
+    )
 end
 """
     ISSEulerHeun(;chunk_size=0, autodiff=true, diff_type=Val{:central},
@@ -2752,7 +2651,7 @@ Stratonovich analog of ISSEM with fully implicit treatment of both drift and dif
   - Split-step implicit methods for fully stiff Stratonovich SDEs
 """
 struct ISSEulerHeun{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller} <:
-       StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
+    StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
     linsolve::F
     nlsolve::N
     precs::P
@@ -2761,23 +2660,28 @@ struct ISSEulerHeun{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller} <:
     new_jac_conv_bound::T2
     symplectic::Bool
 end
-function ISSEulerHeun(; chunk_size = 0, autodiff = true, diff_type = Val{:central},
+function ISSEulerHeun(;
+        chunk_size = 0, autodiff = true, diff_type = Val{:central},
         standardtag = Val{true}(), concrete_jac = nothing,
         precs = OrdinaryDiffEqCore.DEFAULT_PRECS,
         linsolve = nothing, nlsolve = NLNewton(),
         extrapolant = :constant,
         theta = 1, symplectic = false,
-        new_jac_conv_bound = 1e-3,
-        controller = :Predictive)
-    ISSEulerHeun{chunk_size, autodiff,
+        new_jac_conv_bound = 1.0e-3,
+        controller = :Predictive
+    )
+    return ISSEulerHeun{
+        chunk_size, autodiff,
         typeof(linsolve), typeof(precs), diff_type,
         SciMLBase._unwrap_val(standardtag),
         SciMLBase._unwrap_val(concrete_jac),
-        typeof(nlsolve), typeof(new_jac_conv_bound), controller}(
+        typeof(nlsolve), typeof(new_jac_conv_bound), controller,
+    }(
         linsolve, nlsolve, precs,
-        symplectic ? 1/2 : theta,
+        symplectic ? 1 / 2 : theta,
         extrapolant,
-        new_jac_conv_bound, symplectic)
+        new_jac_conv_bound, symplectic
+    )
 end
 """
     SKenCarp(;chunk_size=0, autodiff=true, diff_type=Val{:central}, 
@@ -2831,7 +2735,7 @@ SKenCarp applies implicit treatment to the drift term while keeping the diffusio
   - Adapted for stochastic problems with additive noise
 """
 struct SKenCarp{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller} <:
-       StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
+    StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
     linsolve::F
     nlsolve::N
     precs::P
@@ -2841,18 +2745,116 @@ struct SKenCarp{CS, AD, F, P, FDT, ST, CJ, N, T2, Controller} <:
     ode_error_est::Bool
 end
 
-function SKenCarp(; chunk_size = 0, autodiff = true, diff_type = Val{:central},
+function SKenCarp(;
+        chunk_size = 0, autodiff = true, diff_type = Val{:central},
         standardtag = Val{true}(), concrete_jac = nothing,
         precs = OrdinaryDiffEqCore.DEFAULT_PRECS,
         linsolve = nothing, nlsolve = NLNewton(),
         smooth_est = true, extrapolant = :min_correct,
-        new_jac_conv_bound = 1e-3, controller = :Predictive,
-        ode_error_est = true)
-    SKenCarp{chunk_size, autodiff, typeof(linsolve), typeof(precs), diff_type,
+        new_jac_conv_bound = 1.0e-3, controller = :Predictive,
+        ode_error_est = true
+    )
+    return SKenCarp{
+        chunk_size, autodiff, typeof(linsolve), typeof(precs), diff_type,
         SciMLBase._unwrap_val(standardtag), SciMLBase._unwrap_val(concrete_jac),
-        typeof(nlsolve), typeof(new_jac_conv_bound), controller}(
+        typeof(nlsolve), typeof(new_jac_conv_bound), controller,
+    }(
         linsolve, nlsolve, precs, smooth_est, extrapolant, new_jac_conv_bound,
-        ode_error_est)
+        ode_error_est
+    )
+end
+
+################################################################################
+
+# Implicit Weak Order 2 Methods
+
+"""
+    IRI1(;chunk_size=0, autodiff=true, diff_type=Val{:central},
+         standardtag=Val{true}(), concrete_jac=nothing, precs=DEFAULT_PRECS,
+         linsolve=nothing, nlsolve=NLNewton(), extrapolant=:constant,
+         theta=1, new_jac_conv_bound=1e-3, controller=:Predictive)
+
+**IRI1: Implicit Rößler 1 Method (Stiff, High Weak Order)**
+
+Drift-implicit version of the RI1 weak order 2.0 method for stiff Itô SDEs with multiplicative noise.
+
+## Method Properties
+
+  - **Strong Order**: Not optimized for strong convergence
+  - **Weak Order**: 2.0
+  - **Deterministic Order**: 3.0 (when noise = 0)
+  - **Time stepping**: Adaptive
+  - **Noise types**: All forms (diagonal, non-diagonal, non-commuting, scalar additive)
+  - **SDE interpretation**: Itô
+  - **Implicit treatment**: Drift term only (diffusion remains explicit)
+
+## Parameters
+
+  - `theta::Real = 1`: Implicitness parameter (0=explicit, 1=fully implicit, 0.5=trapezoidal)
+  - Linear/nonlinear solver options via `linsolve` and `nlsolve`
+
+## When to Use
+
+  - **Stiff SDEs with multiplicative noise requiring weak order 2.0**
+  - When SKenCarp cannot be used (non-additive noise)
+  - Monte Carlo simulations where drift causes stability issues
+  - When weak convergence is sufficient but drift stability is needed
+  - Alternative to explicit RI1 when drift is stiff
+
+## Algorithm Description
+
+IRI1 applies the theta-method implicitization to the drift stages of the RI1 weak order 2
+stochastic Runge-Kutta method. The diffusion terms remain explicit, making this method
+suitable for problems where the drift is stiff but the diffusion does not cause stability issues.
+
+## Theta Method Variants
+
+  - `theta = 0.5`: Trapezoidal rule (good accuracy/stability balance)
+  - `theta = 1`: Backward Euler (maximum stability, default)
+
+## Comparison with Other Methods
+
+  - **vs RI1**: IRI1 adds implicit drift treatment for stiff problems
+  - **vs SKenCarp**: IRI1 handles multiplicative noise, not just additive
+  - **vs ImplicitEM**: IRI1 achieves weak order 2.0 instead of 1.0
+  - **vs ISSEM**: IRI1 has higher weak order but only drift-implicit
+
+## References
+
+  - Rößler A., "Second Order Runge–Kutta Methods for Itô Stochastic Differential Equations", SIAM J. Numer. Anal., 47, pp. 1713-1738 (2009). DOI: 10.1137/060673308
+  - Debrabant, K., Rößler, A., "Diagonally drift-implicit Runge-Kutta methods of weak order one and two for Itô SDEs and stability analysis", Applied Numerical Mathematics 59(3–4), 595–607 (2009). DOI: 10.1016/j.apnum.2008.03.011
+  - Kloeden, P.E., Platen, E., "Numerical Solution of Stochastic Differential Equations", Springer (1992). Chapter 15: Explicit and Implicit Weak Approximations.
+"""
+struct IRI1{CS, AD, F, F2, P, FDT, ST, CJ, T2, Controller} <:
+    StochasticDiffEqNewtonAdaptiveAlgorithm{CS, AD, FDT, ST, CJ, Controller}
+    linsolve::F
+    nlsolve::F2
+    precs::P
+    theta::T2
+    extrapolant::Symbol
+    new_jac_conv_bound::T2
+end
+function IRI1(;
+        chunk_size = 0, autodiff = true, diff_type = Val{:central},
+        standardtag = Val{true}(), concrete_jac = nothing,
+        precs = OrdinaryDiffEqCore.DEFAULT_PRECS,
+        linsolve = nothing, nlsolve = NLNewton(),
+        extrapolant = :constant,
+        theta = 1,
+        new_jac_conv_bound = 1.0e-3,
+        controller = :Predictive
+    )
+    return IRI1{
+        chunk_size, autodiff,
+        typeof(linsolve), typeof(nlsolve), typeof(precs), diff_type,
+        SciMLBase._unwrap_val(standardtag),
+        SciMLBase._unwrap_val(concrete_jac),
+        typeof(new_jac_conv_bound), controller,
+    }(
+        linsolve, nlsolve, precs,
+        theta,
+        extrapolant, new_jac_conv_bound
+    )
 end
 
 ################################################################################
@@ -2931,11 +2933,153 @@ Automatically adjusts tau based on:
   - Jump rate variations
   - Solution stability requirements
 
-## References################################################################################
+## References
 
   - Cao, Y., Gillespie, D.T., Petzold, L.R., "Efficient step size selection for the tau-leaping method"# Etc.
 """
 struct CaoTauLeaping <: StochasticDiffEqJumpAdaptiveAlgorithm end
+
+"""
+    ImplicitTauLeaping(; nlsolve=NLFunctional())
+
+**ImplicitTauLeaping: First Order Implicit Tau-Leaping Method (Jump-Diffusion)**
+
+An implicit (backward Euler) tau-leaping method for stiff chemical kinetic systems.
+Uses backward Euler discretization to provide improved stability for systems with
+fast reversible reactions or stiff rate constants.
+
+## Method Properties
+
+| Property              | Value       |
+|:----------------------|:------------|
+| Jacobian Required     | No          |
+| Implicit              | Yes         |
+| Adaptive              | No          |
+| Stability             | A-stable    |
+| Weak Order            | 1           |
+
+## Mathematical Formulation
+
+The method solves the implicit equation:
+
+```math
+X_{n+1} = X_n + ν ⋅ Poisson(dt ⋅ a(X_{n+1}))
+```
+
+which is approximated by:
+
+```math
+X_{n+1} = X_n + ν ⋅ k + dt ⋅ (drift(X_{n+1}) - drift(X_n))
+```
+
+where k ~ Poisson(dt * a(X_n)) and drift(u) = ν * a(u).
+
+This corresponds to `ThetaTrapezoidalTauLeaping` with θ = 1 (fully implicit).
+
+## Keyword Arguments
+
+- `nlsolve`: Nonlinear solver algorithm (default: `NLFunctional()`).
+  Options include `NLFunctional()`, `NLAnderson()`, and `NLNewton()`.
+
+## Example
+
+```julia
+using StochasticDiffEq, JumpProcesses
+
+# Define rate function and stoichiometry
+rate(out, u, p, t) = (out[1] = 0.1*u[1]; out[2] = 0.05*u[2])
+c(du, u, p, t, counts, mark) = (du[1] = -counts[1] + counts[2]; du[2] = counts[1] - counts[2])
+
+rj = RegularJump(rate, c, 2)
+prob = DiscreteProblem([100.0, 0.0], (0.0, 10.0))
+jprob = JumpProblem(prob, Direct(), rj)
+
+sol = solve(jprob, ImplicitTauLeaping(); dt=0.1)
+```
+
+## References
+
+  - Rathinam, M., Petzold, L.R., Cao, Y., Gillespie, D.T., "Stiffness in stochastic
+    chemically reacting systems: The implicit tau-leaping method", J. Chem. Phys.
+    119, 12784 (2003)
+"""
+struct ImplicitTauLeaping{N} <: StochasticDiffEqJumpAdaptiveAlgorithm
+    nlsolve::N
+end
+function ImplicitTauLeaping(; nlsolve = NLFunctional())
+    return ImplicitTauLeaping(nlsolve)
+end
+
+"""
+    ThetaTrapezoidalTauLeaping(; theta=0.5, max_iters=10, abstol=1e-8, reltol=1e-6)
+
+**ThetaTrapezoidalTauLeaping: Implicit Weak Second Order Tau-Leaping Method (Jump-Diffusion)**
+
+An implicit tau-leaping method achieving weak second order accuracy in the
+large volume scaling. Uses fixed-point iteration to solve the implicit equation.
+Based on the work of Hu, Li, and Min (2011) and Anderson and Mattingly (2011).
+
+## Method Properties
+
+  - **Problem type**: Jump-diffusion processes
+  - **Order**: Weak order 2 (in the large volume scaling)
+  - **Time stepping**: Fixed or adaptive tau
+  - **Accuracy**: Superior to both Euler tau-leaping and midpoint tau-leaping
+  - **Implicit treatment**: Uses nonlinear solver for implicit rate equations
+
+## Parameters
+
+  - `theta::Float64`: Implicitness parameter (default: 0.5)
+    - Must be in range (0, 1)
+    - theta = 0.5 gives trapezoidal method (recommended for balanced accuracy/stability)
+    - theta = 1.0 gives backward Euler (maximum stability)
+  - `max_iters::Int`: Maximum iterations for nonlinear solver (default: 10)
+  - `abstol::Float64`: Absolute tolerance for convergence (default: 1e-8)
+  - `reltol::Float64`: Relative tolerance for convergence (default: 1e-6)
+
+## When to Use
+
+  - When higher accuracy is needed compared to standard tau-leaping methods
+  - Chemical reaction networks requiring weak second order accuracy
+  - Systems where accurate mean and covariance estimates are important
+  - When both Euler and midpoint tau-leaping provide insufficient accuracy
+  - Stiff chemical systems where implicit treatment provides stability
+
+## Algorithm Description
+
+The method solves the implicit equation:
+
+```math
+X_{n+1} = X_n + ν⋅k + θ⋅dt⋅ν⋅(a(X_{n+1}) - a(X_n))
+```
+
+where `k ~ Poisson(dt⋅a(X_n))` are the jump counts.
+
+This is solved using fixed-point iteration:
+1. Generate Poisson jumps with rate `dt·a(X_n)`
+2. Initialize `z = 0`
+3. Iterate: `z_{new} = θ·dt·(drift(X_n + ν·k + z) - drift(X_n))`
+4. Final state: `X_{n+1} = X_n + ν·k + z`
+
+## Convergence Properties
+
+The local truncation error for covariance is O(τ³V⁻¹) when τ = V^(-β) for 0 < β < 1
+and system size V → ∞, which is higher order than both Euler and midpoint methods.
+
+## References
+
+  - Hu, Y., Li, T., Min, B., "A weak second order tau-leaping method for chemical
+    kinetic systems", J. Chem. Phys. 135, 024113 (2011)
+  - Anderson, D.F., Mattingly, J.C., "A weak trapezoidal method for a class of
+    stochastic differential equations", Comm. Math. Sci. 9, 301 (2011)
+"""
+struct ThetaTrapezoidalTauLeaping{T, N} <: StochasticDiffEqJumpAdaptiveAlgorithm
+    theta::T
+    nlsolve::N
+end
+function ThetaTrapezoidalTauLeaping(; theta = 0.5, nlsolve = NLFunctional())
+    return ThetaTrapezoidalTauLeaping(theta, nlsolve)
+end
 
 ################################################################################
 
@@ -3111,18 +3255,20 @@ Specialized integrator for Langevin dynamics in molecular dynamics simulations, 
 
 Designed for Langevin systems:
 
-```
-du = v dt
-dv = f(v,u) dt - γv dt + g(u)√(2γ) dW
+```math
+\\begin{align*}
+du &= v \\, dt \\\\
+dv &= f(v,u) \\, dt - γv \\, dt + g(u) \\sqrt{2γ} \\, dW
+\\end{align*}
 ```
 
 where:
 
-  - u: position coordinates
-  - v: velocity coordinates
-  - γ: friction coefficient
-  - f(v,u): force function
-  - g(u): noise scaling function
+  - ``u``: position coordinates
+  - ``v``: velocity coordinates
+  - ``γ``: friction coefficient
+  - ``f(v,u)``: force function
+  - ``g(u)``: noise scaling function
 
 ## When to Use
 

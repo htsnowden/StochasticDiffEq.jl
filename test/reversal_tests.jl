@@ -1,5 +1,4 @@
 using StochasticDiffEq, DiffEqNoiseProcess, Test, Random
-using Random
 using SDEProblemLibrary
 # automatically construct SDE transformation for Ito reversal
 using ModelingToolkit
@@ -13,7 +12,7 @@ additive_noise_solver = [
     SRA3(),
     SOSRA(),
     SOSRA2(),
-    SKenCarp()
+    SKenCarp(),
 ]
 
 Stratonovich_solver = [
@@ -28,7 +27,7 @@ Stratonovich_solver = [
     # stiff methods
     ImplicitEulerHeun(),
     ImplicitRKMil(interpretation = SciMLBase.AlgorithmInterpretation.Stratonovich),
-    ISSEulerHeun()
+    ISSEulerHeun(),
 ]
 
 Ito_solver = [
@@ -56,13 +55,13 @@ Ito_solver = [
     # stiff methods
     ImplicitEM(),
     ImplicitRKMil(),
-    ISSEM()
+    ISSEM(),
 ]
 
 seed = 62356236796
 Random.seed!(seed)
 
-dt = 1e-6
+dt = 1.0e-6
 n = round(Int, 1 / dt) # number of steps, probs have time span (0,1)
 W = [0.0; cumsum(sqrt(dt) * randn(n + 1))] # n + 1 to avoid past step in noise grid
 Z = [0.0; cumsum(sqrt(dt) * randn(n + 1))]
@@ -72,10 +71,12 @@ W_forward = NoiseGrid(ts, W, Z)
 W_reverse = reverse(W_forward)
 
 @testset "Additive Noise Solver Reversal Tests ($(["out-of-place", "in-place"][i]))" for i in
-                                                                                         1:2
+    1:2
 
-    prob = (SDEProblemLibrary.prob_sde_additive,
-        SDEProblemLibrary.prob_sde_additivesystem)[i]
+    prob = (
+        SDEProblemLibrary.prob_sde_additive,
+        SDEProblemLibrary.prob_sde_additivesystem,
+    )[i]
 
     prob_forward = remake(prob, noise = W_forward)
 
@@ -84,20 +85,23 @@ W_reverse = reverse(W_forward)
         sol_forward = solve(prob_forward, solver, dt = dt, adaptive = false)
 
         prob_reverse = remake(
-            prob_forward, noise = W_reverse, tspan = reverse(prob.tspan), u0 = sol_forward.u[end])
+            prob_forward, noise = W_reverse, tspan = reverse(prob.tspan), u0 = sol_forward.u[end]
+        )
         sol_reverse = solve(prob_reverse, solver, dt = dt, adaptive = false)
 
-        @test sol_forward(ts).u ≈ sol_reverse(ts).u rtol = 1e-3
+        @test sol_forward(ts).u ≈ sol_reverse(ts).u rtol = 1.0e-3
         @test length(sol_forward.t) == length(sol_reverse.t)
         GC.gc()
     end
 end
 
 @testset "Stratonovich Solver Reversal Tests ($(["out-of-place", "in-place"][i]))" for i in
-                                                                                       1:2
+    1:2
 
-    prob = (SDEProblemLibrary.prob_sde_linear_stratonovich,
-        SDEProblemLibrary.prob_sde_2Dlinear_stratonovich)[i]
+    prob = (
+        SDEProblemLibrary.prob_sde_linear_stratonovich,
+        SDEProblemLibrary.prob_sde_2Dlinear_stratonovich,
+    )[i]
 
     prob_forward = remake(prob, noise = W_forward)
 
@@ -106,25 +110,28 @@ end
         sol_forward = solve(prob_forward, solver, dt = dt, adaptive = false)
 
         prob_reverse = remake(
-            prob_forward, noise = W_reverse, tspan = reverse(prob.tspan), u0 = sol_forward.u[end])
+            prob_forward, noise = W_reverse, tspan = reverse(prob.tspan), u0 = sol_forward.u[end]
+        )
         sol_reverse = solve(prob_reverse, solver, dt = dt, adaptive = false)
 
-        @test sol_forward(ts).u ≈ sol_reverse(ts).u rtol = 1e-2
+        @test sol_forward(ts).u ≈ sol_reverse(ts).u rtol = 1.0e-2
         @test length(sol_forward.t) == length(sol_reverse.t)
         GC.gc()
     end
 end
 
 @testset "Ito Solver Reversal Tests ($(["out-of-place", "in-place"][i]))" for i in 1:2
-    prob = (SDEProblemLibrary.prob_sde_linear,
-        SDEProblemLibrary.prob_sde_2Dlinear)[i]
-
+    prob = (
+        SDEProblemLibrary.prob_sde_linear,
+        SDEProblemLibrary.prob_sde_2Dlinear,
+    )[i]
     if i == 1
         prob_forward = remake(prob, noise = W_forward)
     else
         prob_forward = remake(prob, noise = W_forward, u0 = vec(prob.u0))
     end
     sys = complete(modelingtoolkitize(prob_forward))
+    mtkps = MTKParameters(sys, [])
     sys2 = stochastic_integral_transform(sys, -1 // 1)
     fdrift = generate_rhs(sys2; expression = Val{false})[i]
     fdif = generate_diffusion_function(sys2; expression = Val{false})[i]
@@ -139,13 +146,14 @@ end
         end
         prob_reverse = remake(
             prob_forward, f = SDEFunction(fdrift, fdif), noise = W_reverse,
-            tspan = reverse(prob.tspan), u0 = _u0)
+            tspan = reverse(prob.tspan), u0 = _u0, p = mtkps
+        )
         sol_reverse = solve(prob_reverse, solver, dt = dt, adaptive = false)
 
         if i == 1
-            @test sol_forward(ts).u ≈ vcat(sol_reverse(ts).u...) rtol = 1e-2
+            @test sol_forward(ts).u ≈ vcat(sol_reverse(ts).u...) rtol = 1.0e-2
         else
-            @test sol_forward(ts).u ≈ sol_reverse(ts).u rtol = 1e-2
+            @test sol_forward(ts).u ≈ sol_reverse(ts).u rtol = 1.0e-2
         end
         @test length(sol_forward.t) == length(sol_reverse.t)
         GC.gc()
