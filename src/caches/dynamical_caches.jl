@@ -1,4 +1,4 @@
-mutable struct BAOABConstantCache{uType, uEltypeNoUnits} <: StochasticDiffEqConstantCache
+#= mutable struct BAOABConstantCache{uType, uEltypeNoUnits} <: StochasticDiffEqConstantCache
     k::uType
     half::uEltypeNoUnits
     c1::uEltypeNoUnits
@@ -58,3 +58,4 @@ function alg_cache(
         utmp, dutmp, k, gtmp, noise, half, uEltypeNoUnits(c1), uEltypeNoUnits(c2), tmp
     )
 end
+ =#

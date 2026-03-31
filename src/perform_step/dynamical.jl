@@ -1,4 +1,4 @@
-function verify_f2(f, p, q, pa, t, integrator, ::BAOABConstantCache)
+#= function verify_f2(f, p, q, pa, t, integrator, ::BAOABConstantCache)
     res = f(p, q, pa, t)
     return res != p && throwex(integrator)
 end
@@ -124,4 +124,4 @@ end
 
 function apply_noise(g::SciMLBase.DynamicalNoiseFunction, dutmp, utmp, integrator, cache::BAOABCache)
     return g.f(dutmp, utmp, integrator, cache)
-end
+end =#
